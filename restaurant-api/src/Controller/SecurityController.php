@@ -58,10 +58,6 @@ class SecurityController extends AbstractController
             $payload['phone'] = $user->getPhone();
         }
 
-        if ($user->getAddress() !== null) {
-            $payload['address'] = $user->getAddress();
-        }
-
         $token = $JWTManager->createFromPayload($user, $payload);
 
         return $this->json([
