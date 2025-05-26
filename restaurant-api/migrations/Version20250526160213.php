@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20250526134752 extends AbstractMigration
+final class Version20250526160213 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -24,10 +24,10 @@ final class Version20250526134752 extends AbstractMigration
             CREATE TABLE categories (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(255) NOT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB
         SQL);
         $this->addSql(<<<'SQL'
-            CREATE TABLE menu_items (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(255) NOT NULL, description VARCHAR(255) NOT NULL, price DOUBLE PRECISION NOT NULL, created_at DATETIME NOT NULL COMMENT '(DC2Type:datetime_immutable)', updated_at DATETIME DEFAULT NULL COMMENT '(DC2Type:datetime_immutable)', PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB
+            CREATE TABLE menu_items (id INT AUTO_INCREMENT NOT NULL, category_id INT NOT NULL, name VARCHAR(255) NOT NULL, description VARCHAR(255) NOT NULL, price DOUBLE PRECISION NOT NULL, created_at DATETIME NOT NULL COMMENT '(DC2Type:datetime_immutable)', updated_at DATETIME DEFAULT NULL COMMENT '(DC2Type:datetime_immutable)', INDEX IDX_70B2CA2A12469DE2 (category_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB
         SQL);
         $this->addSql(<<<'SQL'
-            CREATE TABLE reservations (id INT AUTO_INCREMENT NOT NULL, user_id_id INT NOT NULL, time_slot_id_id INT DEFAULT NULL, reservation_date DATETIME NOT NULL, guest_count INT NOT NULL, created_at DATETIME NOT NULL COMMENT '(DC2Type:datetime_immutable)', updated_at DATETIME DEFAULT NULL COMMENT '(DC2Type:datetime_immutable)', INDEX IDX_4DA2399D86650F (user_id_id), INDEX IDX_4DA239996B9DF7 (time_slot_id_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB
+            CREATE TABLE reservations (id INT AUTO_INCREMENT NOT NULL, user_id INT NOT NULL, time_slot_id INT DEFAULT NULL, reservation_date DATETIME NOT NULL, guest_count INT NOT NULL, created_at DATETIME NOT NULL COMMENT '(DC2Type:datetime_immutable)', updated_at DATETIME DEFAULT NULL COMMENT '(DC2Type:datetime_immutable)', INDEX IDX_4DA239A76ED395 (user_id), INDEX IDX_4DA239D62B0FA (time_slot_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB
         SQL);
         $this->addSql(<<<'SQL'
             CREATE TABLE tables (id INT AUTO_INCREMENT NOT NULL, reservations_id INT DEFAULT NULL, name VARCHAR(255) DEFAULT NULL, capacity INT NOT NULL, INDEX IDX_84470221D9A7F869 (reservations_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB
@@ -39,10 +39,13 @@ final class Version20250526134752 extends AbstractMigration
             CREATE TABLE user (id INT AUTO_INCREMENT NOT NULL, firstname VARCHAR(255) NOT NULL, lastname VARCHAR(255) NOT NULL, email VARCHAR(255) NOT NULL, phone VARCHAR(255) DEFAULT NULL, role VARCHAR(255) NOT NULL, password VARCHAR(255) NOT NULL, UNIQUE INDEX UNIQ_8D93D649E7927C74 (email), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB
         SQL);
         $this->addSql(<<<'SQL'
-            ALTER TABLE reservations ADD CONSTRAINT FK_4DA2399D86650F FOREIGN KEY (user_id_id) REFERENCES user (id)
+            ALTER TABLE menu_items ADD CONSTRAINT FK_70B2CA2A12469DE2 FOREIGN KEY (category_id) REFERENCES categories (id)
         SQL);
         $this->addSql(<<<'SQL'
-            ALTER TABLE reservations ADD CONSTRAINT FK_4DA239996B9DF7 FOREIGN KEY (time_slot_id_id) REFERENCES time_slots (id)
+            ALTER TABLE reservations ADD CONSTRAINT FK_4DA239A76ED395 FOREIGN KEY (user_id) REFERENCES user (id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE reservations ADD CONSTRAINT FK_4DA239D62B0FA FOREIGN KEY (time_slot_id) REFERENCES time_slots (id)
         SQL);
         $this->addSql(<<<'SQL'
             ALTER TABLE tables ADD CONSTRAINT FK_84470221D9A7F869 FOREIGN KEY (reservations_id) REFERENCES reservations (id)
@@ -53,10 +56,13 @@ final class Version20250526134752 extends AbstractMigration
     {
         // this down() migration is auto-generated, please modify it to your needs
         $this->addSql(<<<'SQL'
-            ALTER TABLE reservations DROP FOREIGN KEY FK_4DA2399D86650F
+            ALTER TABLE menu_items DROP FOREIGN KEY FK_70B2CA2A12469DE2
         SQL);
         $this->addSql(<<<'SQL'
-            ALTER TABLE reservations DROP FOREIGN KEY FK_4DA239996B9DF7
+            ALTER TABLE reservations DROP FOREIGN KEY FK_4DA239A76ED395
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE reservations DROP FOREIGN KEY FK_4DA239D62B0FA
         SQL);
         $this->addSql(<<<'SQL'
             ALTER TABLE tables DROP FOREIGN KEY FK_84470221D9A7F869

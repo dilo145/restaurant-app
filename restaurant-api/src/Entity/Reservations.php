@@ -3,44 +3,73 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Link;
 use App\Repository\ReservationsRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ReservationsRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    normalizationContext: ['groups' => ['reservation:read']],
+    denormalizationContext: ['groups' => ['reservation:write']]
+)]
+#[ApiResource(
+    uriTemplate: '/users/{user_id}/reservations',
+    operations: [
+        new GetCollection(
+            uriVariables: [
+                'user_id' => new Link(
+                    fromProperty: 'reservations',
+                    fromClass: User::class
+                )
+            ],
+            description: 'Retrieves the collection of Reservations for a specific User',
+            normalizationContext: ['groups' => ['reservation:read']]
+        )
+    ]
+)]
 class Reservations
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['reservation:read', 'user:read'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'reservations')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?User $user_id = null;
+    #[Groups(['reservation:read', 'reservation:write'])]
+    private ?User $user = null;
 
     /**
      * @var Collection<int, Tables>
      */
     #[ORM\OneToMany(targetEntity: Tables::class, mappedBy: 'reservations')]
+    #[Groups(['reservation:read', 'reservation:write', 'user:read'])]
     private Collection $table_id;
 
     #[ORM\ManyToOne(inversedBy: 'reservations')]
-    private ?TimeSlots $time_slot_id = null;
+    #[Groups(['reservation:read', 'reservation:write', 'user:read'])]
+    private ?TimeSlots $time_slot = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Groups(['reservation:read', 'reservation:write', 'user:read'])]
     private ?\DateTimeInterface $reservation_date = null;
 
     #[ORM\Column]
+    #[Groups(['reservation:read', 'reservation:write', 'user:read'])]
     private ?int $guest_count = null;
 
     #[ORM\Column]
+    #[Groups(['reservation:read', 'user:read'])]
     private ?\DateTimeImmutable $created_at = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['reservation:read', 'user:read'])]
     private ?\DateTimeImmutable $updated_at = null;
 
     public function __construct()
@@ -48,14 +77,19 @@ class Reservations
         $this->table_id = new ArrayCollection();
     }
 
-    public function getUserId(): ?user
+    public function getId(): ?int
     {
-        return $this->user_id;
+        return $this->id;
     }
 
-    public function setUserId(?user $user_id): static
+    public function getUser(): ?User
     {
-        $this->user_id = $user_id;
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
 
         return $this;
     }
@@ -90,14 +124,14 @@ class Reservations
         return $this;
     }
 
-    public function getTimeSlotId(): ?TimeSlots
+    public function getTimeSlot(): ?TimeSlots
     {
-        return $this->time_slot_id;
+        return $this->time_slot;
     }
 
-    public function setTimeSlotId(?TimeSlots $time_slot_id): static
+    public function setTimeSlot(?TimeSlots $time_slot): static
     {
-        $this->time_slot_id = $time_slot_id;
+        $this->time_slot = $time_slot;
 
         return $this;
     }
