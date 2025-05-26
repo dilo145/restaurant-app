@@ -8,6 +8,9 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\ApiSubresource;
+use ApiPlatform\Metadata\Link;
+use ApiPlatform\Metadata\ApiProperty;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -35,6 +38,23 @@ enum UserRole: string
     ],
     normalizationContext: ['groups' => ['user:read']],
     denormalizationContext: ['groups' => ['user:write']]
+)]
+#[ApiResource(
+    uriTemplate: '/users/{id}/reservations',
+    operations: [
+        new GetCollection(
+            uriVariables: [
+                'id' => new Link(
+                    fromClass: User::class,
+                    fromProperty: 'id'
+                )
+            ],
+            normalizationContext: ['groups' => ['reservation:read']],
+            security: "object == user or is_granted('ROLE_ADMIN')",
+            securityMessage: "You can only view your own reservations unless you're an admin.",
+            description: 'Retrieves the collection of Reservations for a specific User'
+        )
+    ]
 )]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
@@ -76,8 +96,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * @var Collection<int, Reservations>
+     *
+     * User reservations - accessible via /api/users/{id}/reservations
      */
-    #[ORM\OneToMany(targetEntity: Reservations::class, mappedBy: 'user_id', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Reservations::class, mappedBy: 'user')]
+    #[ApiProperty(description: 'Reservations made by this user')]
+    #[Groups(['user:read'])]
     private Collection $reservations;
 
     public function __construct()
@@ -195,6 +219,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @return Collection<int, Reservations>
      */
+    #[Groups(['user:read'])]
     public function getReservations(): Collection
     {
         return $this->reservations;
@@ -204,7 +229,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if (!$this->reservations->contains($reservation)) {
             $this->reservations->add($reservation);
-            $reservation->setUserId($this);
+            $reservation->setUser($this);
         }
 
         return $this;
@@ -214,8 +239,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if ($this->reservations->removeElement($reservation)) {
             // set the owning side to null (unless already changed)
-            if ($reservation->getUserId() === $this) {
-                $reservation->setUserId(null);
+            if ($reservation->getUser() === $this) {
+                $reservation->setUser(null);
             }
         }
 
