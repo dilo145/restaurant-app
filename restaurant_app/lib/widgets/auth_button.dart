@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
-import '../utils/constants.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class AuthButton extends StatelessWidget {
-  final bool isLoggedIn;
-
   const AuthButton({
     super.key,
-    this.isLoggedIn = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final isLoggedIn = authProvider.isLoggedIn;
+    
     return IconButton(
       icon: Icon(
-        isLoggedIn ? Icons.account_circle : Icons.login,
+        isLoggedIn ? Icons.person : Icons.person_outline,
         size: 28,
       ),
       onPressed: () {

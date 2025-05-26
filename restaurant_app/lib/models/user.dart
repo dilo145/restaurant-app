@@ -1,35 +1,35 @@
 class User {
-  final String id;
-  final String username;
+  final int id;
   final String email;
-  final String fullName;
-  final String phone;
-  final String? profileImagePath;
-  final String? description;
-  final String role; // 'client', 'admin', etc.
+  final String firstname;
+  final String lastname;
+  final String? phone;
+  final String? address;
+  final String role; // 'user', 'admin'
 
   User({
     required this.id,
-    required this.username,
     required this.email,
-    required this.fullName,
-    required this.phone,
-    this.profileImagePath,
-    this.description,
-    this.role = 'client',
+    required this.firstname,
+    required this.lastname,
+    this.phone,
+    this.address,
+    this.role = 'user',
   });
+
+  // Getter pour le nom complet
+  String get fullName => '$firstname $lastname';
 
   // Crée un User à partir d'un Map
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
-      id: map['id'] ?? '',
-      username: map['username'] ?? '',
+      id: map['id'] ?? 0,
       email: map['email'] ?? '',
-      fullName: map['fullName'] ?? '',
-      phone: map['phone'] ?? '',
-      profileImagePath: map['profileImagePath'],
-      description: map['description'],
-      role: map['role'] ?? 'client',
+      firstname: map['firstname'] ?? '',
+      lastname: map['lastname'] ?? '',
+      phone: map['phone'],
+      address: map['address'],
+      role: map['role'] ?? 'user',
     );
   }
 
@@ -37,35 +37,32 @@ class User {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'username': username,
       'email': email,
-      'fullName': fullName,
+      'firstname': firstname,
+      'lastname': lastname,
       'phone': phone,
-      'profileImagePath': profileImagePath,
-      'description': description,
+      'address': address,
       'role': role,
     };
   }
 
   // Crée une copie de User avec des modifications
   User copyWith({
-    String? id,
-    String? username,
+    int? id,
     String? email,
-    String? fullName,
+    String? firstname,
+    String? lastname,
     String? phone,
-    String? profileImagePath,
-    String? description,
+    String? address,
     String? role,
   }) {
     return User(
       id: id ?? this.id,
-      username: username ?? this.username,
       email: email ?? this.email,
-      fullName: fullName ?? this.fullName,
+      firstname: firstname ?? this.firstname,
+      lastname: lastname ?? this.lastname,
       phone: phone ?? this.phone,
-      profileImagePath: profileImagePath ?? this.profileImagePath,
-      description: description ?? this.description,
+      address: address ?? this.address,
       role: role ?? this.role,
     );
   }

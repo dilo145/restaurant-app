@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../utils/constants.dart';
 import '../models/user.dart';
+import '../providers/auth_provider.dart';
 import 'register_page.dart';
 import 'home_page.dart';
-import 'profile_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -18,6 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _rememberMe = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -26,30 +28,75 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void _login() {
+  void _login() async {
     if (_formKey.currentState!.validate()) {
-      // Simuler une connexion réussie avec un utilisateur fictif
-      final user = User(
-        id: '1',
-        username: 'alexdupont',
-        email: _emailController.text,
-        fullName: 'Alex Dupont',
-        phone: '+33 6 12 34 56 78',
-        profileImagePath: 'assets/images/poulet.jpg',
-        description: 'Passionné par la gastronomie française et les plats traditionnels. '
-            'Je suis un client régulier du Gourmet Français et j\'adore découvrir de nouvelles saveurs.',
-        role: 'client',
-      );
+      setState(() {
+        _isLoading = true;
+      });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Connexion réussie!')),
-      );
+      try {
+        print('LoginPage: tentative de connexion');
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        final result = await authProvider.login(
+          _emailController.text.trim(),
+          _passwordController.text,
+        );
 
-      // Naviguer vers la page d'accueil
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const HomePage()),
-        (route) => false,
-      );
+        print('LoginPage: résultat de connexion: $result');
+
+        // Vérifier si l'utilisateur est toujours monté
+        if (!mounted) return;
+
+        if (result['success']) {
+          // Vérifier que l'utilisateur est bien connecté
+          if (authProvider.isLoggedIn && authProvider.user != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Bienvenue ${authProvider.user!.firstname}!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+
+            // Naviguer vers la page d'accueil
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const HomePage()),
+              (route) => false,
+            );
+          } else {
+            // Connexion réussie mais problème avec les données utilisateur
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Problème lors de la récupération des informations utilisateur'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+        } else {
+          // Afficher l'erreur spécifique
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message']),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        print('LoginPage: exception lors de la connexion: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erreur inattendue: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 
@@ -205,7 +252,7 @@ class _LoginPageState extends State<LoginPage> {
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
-                                onPressed: _login,
+                                onPressed: _isLoading ? null : _login,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.primary,
                                   foregroundColor: Colors.white,
@@ -214,13 +261,22 @@ class _LoginPageState extends State<LoginPage> {
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                 ),
-                                child: const Text(
-                                  'SE CONNECTER',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                        ),
+                                      )
+                                    : const Text(
+                                        'SE CONNECTER',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                               ),
                             ),
                             const SizedBox(height: 20),

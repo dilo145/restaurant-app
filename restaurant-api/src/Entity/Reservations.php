@@ -56,21 +56,21 @@ class Reservations
     #[Groups(['reservation:read', 'reservation:write', 'user:read'])]
     private ?TimeSlots $time_slot = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    #[Groups(['reservation:read', 'reservation:write', 'user:read'])]
-    private ?\DateTimeInterface $reservation_date = null;
+    // #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    // #[Groups(['reservation:read', 'reservation:write', 'user:read'])]
+    // private ?\DateTimeInterface $reservation_date = null;
 
     #[ORM\Column]
     #[Groups(['reservation:read', 'reservation:write', 'user:read'])]
     private ?int $guest_count = null;
 
-    #[ORM\Column]
-    #[Groups(['reservation:read', 'user:read'])]
-    private ?\DateTimeImmutable $created_at = null;
+    // #[ORM\Column]
+    // #[Groups(['reservation:read', 'user:read'])]
+    // private ?\DateTimeImmutable $created_at = null;
 
-    #[ORM\Column(nullable: true)]
-    #[Groups(['reservation:read', 'user:read'])]
-    private ?\DateTimeImmutable $updated_at = null;
+    // #[ORM\Column(nullable: true)]
+    // #[Groups(['reservation:read', 'user:read'])]
+    // private ?\DateTimeImmutable $updated_at = null;
 
     public function __construct()
     {
@@ -136,17 +136,17 @@ class Reservations
         return $this;
     }
 
-    public function getReservationDate(): ?\DateTimeInterface
-    {
-        return $this->reservation_date;
-    }
+    // public function getReservationDate(): ?\DateTimeInterface
+    // {
+    //     return $this->reservation_date;
+    // }
 
-    public function setReservationDate(\DateTimeInterface $reservation_date): static
-    {
-        $this->reservation_date = $reservation_date;
+    // public function setReservationDate(\DateTimeInterface $reservation_date): static
+    // {
+    //     $this->reservation_date = $reservation_date;
 
-        return $this;
-    }
+    //     return $this;
+    // }
 
     public function getGuestCount(): ?int
     {
@@ -160,27 +160,27 @@ class Reservations
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->created_at;
-    }
+    // public function getCreatedAt(): ?\DateTimeImmutable
+    // {
+    //     return $this->created_at;
+    // }
 
-    public function setCreatedAt(\DateTimeImmutable $created_at): static
-    {
-        $this->created_at = $created_at;
+    // public function setCreatedAt(\DateTimeImmutable $created_at): static
+    // {
+    //     $this->created_at = $created_at;
 
-        return $this;
-    }
+    //     return $this;
+    // }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
-    {
-        return $this->updated_at;
-    }
+    // public function getUpdatedAt(): ?\DateTimeImmutable
+    // {
+    //     return $this->updated_at;
+    // }
 
-    public function setUpdatedAt(?\DateTimeImmutable $updated_at): static
-    {
-        $this->updated_at = $updated_at;
+    // public function setUpdatedAt(?\DateTimeImmutable $updated_at): static
+    // {
+    //     $this->updated_at = $updated_at;
 
-        return $this;
-    }
+    //     return $this;
+    // }
 }

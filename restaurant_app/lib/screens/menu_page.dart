@@ -3,6 +3,7 @@ import '../utils/constants.dart';
 import '../utils/data.dart';
 import '../widgets/category_selector.dart';
 import '../widgets/dish_card.dart';
+import '../widgets/auth_button.dart';
 import '../models/menu_item.dart';
 
 class MenuPage extends StatefulWidget {
@@ -32,6 +33,9 @@ class _MenuPageState extends State<MenuPage> {
           style: AppStyles.appBarTitle,
         ),
         elevation: 4,
+        actions: const [
+          AuthButton(),
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

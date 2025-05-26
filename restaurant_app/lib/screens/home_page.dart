@@ -7,9 +7,6 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Vérifier si l'utilisateur est connecté
-    final bool isLoggedIn = ModalRoute.of(context)?.settings.arguments as bool? ?? false;
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.primary,
@@ -18,8 +15,8 @@ class HomePage extends StatelessWidget {
           style: AppStyles.appBarTitle,
         ),
         elevation: 4,
-        actions: [
-          AuthButton(isLoggedIn: isLoggedIn),
+        actions: const [
+          AuthButton(),
         ],
       ),
       body: Container(
@@ -131,7 +128,30 @@ class HomePage extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 20),
+                // Bouton pour réserver une table
+                OutlinedButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/reservations/search');
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: BorderSide(color: AppColors.primary, width: 2),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 40, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    minimumSize: const Size(double.infinity, 0),
+                  ),
+                  child: const Text(
+                    'Réserver une table',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

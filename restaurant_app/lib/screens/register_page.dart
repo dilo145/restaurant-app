@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../utils/constants.dart';
+import '../providers/auth_provider.dart';
 import 'login_page.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -11,7 +13,8 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
-  final _fullNameController = TextEditingController();
+  final _firstnameController = TextEditingController();
+  final _lastnameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -19,10 +22,12 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   bool _acceptTerms = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
-    _fullNameController.dispose();
+    _firstnameController.dispose();
+    _lastnameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
@@ -30,18 +35,45 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  void _register() {
+  void _register() async {
     if (_formKey.currentState!.validate() && _acceptTerms) {
+      setState(() {
+        _isLoading = true;
+      });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Inscription réussie! Vous pouvez maintenant vous connecter')),
-      );
+      try {
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        final result = await authProvider.register(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+          firstname: _firstnameController.text.trim(),
+          lastname: _lastnameController.text.trim(),
+          phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
+        );
 
-      // Rediriger vers la page de connexion
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginPage()),
-      );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message']),
+              backgroundColor: result['success'] ? Colors.green : Colors.red,
+            ),
+          );
+
+          if (result['success']) {
+            // Rediriger vers la page de connexion
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginPage()),
+            );
+          }
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     } else if (!_acceptTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vous devez accepter les conditions d\'utilisation')),
@@ -96,11 +128,11 @@ class _RegisterPageState extends State<RegisterPage> {
                         key: _formKey,
                         child: Column(
                           children: [
-                            // Nom complet
+                            // Prénom
                             TextFormField(
-                              controller: _fullNameController,
+                              controller: _firstnameController,
                               decoration: InputDecoration(
-                                labelText: 'Nom complet',
+                                labelText: 'Prénom',
                                 prefixIcon: Icon(Icons.person, color: AppColors.primary),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
@@ -112,7 +144,29 @@ class _RegisterPageState extends State<RegisterPage> {
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Veuillez entrer votre nom complet';
+                                  return 'Veuillez entrer votre prénom';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 15),
+                            // Nom
+                            TextFormField(
+                              controller: _lastnameController,
+                              decoration: InputDecoration(
+                                labelText: 'Nom',
+                                prefixIcon: Icon(Icons.person_outline, color: AppColors.primary),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(color: AppColors.primary, width: 2),
+                                ),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Veuillez entrer votre nom';
                                 }
                                 return null;
                               },
@@ -149,7 +203,8 @@ class _RegisterPageState extends State<RegisterPage> {
                             TextFormField(
                               controller: _phoneController,
                               decoration: InputDecoration(
-                                labelText: 'Téléphone',
+                                labelText: 'Téléphone (optionnel)',
+                                hintText: '+33 6 12 34 56 78',
                                 prefixIcon: Icon(Icons.phone, color: AppColors.primary),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
@@ -160,12 +215,6 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ),
                               ),
                               keyboardType: TextInputType.phone,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Veuillez entrer votre numéro de téléphone';
-                                }
-                                return null;
-                              },
                             ),
                             const SizedBox(height: 15),
                             // Mot de passe
@@ -271,7 +320,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
-                                onPressed: _register,
+                                onPressed: _isLoading ? null : _register,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.primary,
                                   foregroundColor: Colors.white,
@@ -280,13 +329,22 @@ class _RegisterPageState extends State<RegisterPage> {
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                 ),
-                                child: const Text(
-                                  'S\'INSCRIRE',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                        ),
+                                      )
+                                    : const Text(
+                                        'S\'INSCRIRE',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                               ),
                             ),
                             const SizedBox(height: 20),

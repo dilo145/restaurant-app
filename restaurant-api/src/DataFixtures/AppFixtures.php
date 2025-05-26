@@ -116,9 +116,9 @@ class AppFixtures extends Fixture
         // --- RESERVATIONS ---
         $reservation = new \App\Entity\Reservations();
         $reservation->setUser($user)
-            ->setReservationDate(new \DateTime('tomorrow 12:30'))
+            // ->setReservationDate(new \DateTime('tomorrow 12:30'))
             ->setGuestCount(2)
-            ->setCreatedAt(new \DateTimeImmutable())
+            // ->setCreatedAt(new \DateTimeImmutable())
             ->setTimeSlot($timeSlots[0]);
         foreach ([$tables[0], $tables[1]] as $table) {
             $reservation->addTableId($table);
