@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import '../utils/constants.dart';
+import '../widgets/auth_button.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Vérifier si l'utilisateur est connecté
+    final bool isLoggedIn = ModalRoute.of(context)?.settings.arguments as bool? ?? false;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.primary,
@@ -14,6 +18,9 @@ class HomePage extends StatelessWidget {
           style: AppStyles.appBarTitle,
         ),
         elevation: 4,
+        actions: [
+          AuthButton(isLoggedIn: isLoggedIn),
+        ],
       ),
       body: Container(
         decoration: BoxDecoration(
