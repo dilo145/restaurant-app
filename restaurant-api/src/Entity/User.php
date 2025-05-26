@@ -9,6 +9,8 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Delete;
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -19,6 +21,7 @@ enum UserRole: string
 {
     case ADMIN = 'admin';
     case USER = 'user';
+    case HOST = 'host';
 }
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
@@ -63,10 +66,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user:read', 'user:write'])]
     private ?string $phone = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['user:read', 'user:write'])]
-    private ?string $address = null;
-
     #[ORM\Column(type: 'string', enumType: UserRole::class)]
     #[Groups(['user:read', 'user:write'])]
     private UserRole $role = UserRole::USER;
@@ -74,6 +73,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255)]
     #[Groups(['user:write'])]
     private ?string $password = null;
+
+    /**
+     * @var Collection<int, Reservations>
+     */
+    #[ORM\OneToMany(targetEntity: Reservations::class, mappedBy: 'user_id', orphanRemoval: true)]
+    private Collection $reservations;
+
+    public function __construct()
+    {
+        $this->reservations = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -180,5 +190,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getUserIdentifier(): string
     {
         return $this->email;
+    }
+
+    /**
+     * @return Collection<int, Reservations>
+     */
+    public function getReservations(): Collection
+    {
+        return $this->reservations;
+    }
+
+    public function addReservation(Reservations $reservation): static
+    {
+        if (!$this->reservations->contains($reservation)) {
+            $this->reservations->add($reservation);
+            $reservation->setUserId($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReservation(Reservations $reservation): static
+    {
+        if ($this->reservations->removeElement($reservation)) {
+            // set the owning side to null (unless already changed)
+            if ($reservation->getUserId() === $this) {
+                $reservation->setUserId(null);
+            }
+        }
+
+        return $this;
     }
 }
